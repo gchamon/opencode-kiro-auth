@@ -114,6 +114,21 @@ Add the plugin to your `opencode.json` or `opencode.jsonc`:
             "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
           }
         },
+        "claude-opus-4-7": {
+          "name": "Claude Opus 4.7",
+          "limit": { "context": 1000000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
+        },
+        "claude-opus-4-7-thinking": {
+          "name": "Claude Opus 4.7 Thinking",
+          "limit": { "context": 1000000, "output": 64000 },
+          "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
+          "variants": {
+            "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
+            "medium": { "thinkingConfig": { "thinkingBudget": 16384 } },
+            "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
+          }
+        },
         "claude-sonnet-4-5-1m": {
           "name": "Claude Sonnet 4.5 (1M Context)",
           "limit": { "context": 1000000, "output": 64000 },
@@ -137,6 +152,7 @@ Add the plugin to your `opencode.json` or `opencode.jsonc`:
         "auto": { "name": "Auto (1.0x)" },
         "claude-sonnet-4": { "name": "Claude Sonnet 4.0 (1.3x)", "limit": { "context": 200000, "output": 64000 } },
         "deepseek-3.2": { "name": "DeepSeek 3.2 (0.25x)", "limit": { "context": 128000, "output": 64000 } },
+        "glm-5": { "name": "GLM-5 (0.5x)", "limit": { "context": 200000, "output": 64000 } },
         "minimax-m2.5": { "name": "MiniMax 2.5 (0.25x)", "limit": { "context": 200000, "output": 64000 } },
         "minimax-m2.1": { "name": "MiniMax 2.1 (0.15x)", "limit": { "context": 200000, "output": 64000 } },
         "qwen3-coder-next": { "name": "Qwen3 Coder Next (0.05x)", "limit": { "context": 256000, "output": 64000 } }
@@ -177,30 +193,19 @@ Add the plugin to your `opencode.json` or `opencode.jsonc`:
 
 ## Local plugin development
 
-OpenCode installs plugins into a cache directory (typically
-`~/.cache/opencode/node_modules`).
+The simplest way to test local changes is to point OpenCode directly at your local repo
+path in `opencode.json` or `opencode.jsonc`:
 
-The simplest way to test local changes (without publishing to npm) is to build this repo
-and hot-swap the cached plugin `dist/` folder:
-
-1. Build this repo: `bun run build` (or `npm run build`)
-2. Hot-swap `dist/` (creates a timestamped backup):
-
-```bash
-PLUGIN_DIR="$HOME/.cache/opencode/node_modules/@zhafron/opencode-kiro-auth"
-TS=$(date +%Y%m%d-%H%M%S)
-cp -a "$PLUGIN_DIR/dist" "$PLUGIN_DIR/dist.bak.$TS"
-rm -rf "$PLUGIN_DIR/dist"
-cp -a "/absolute/path/to/opencode-kiro-auth/dist" "$PLUGIN_DIR/dist"
-echo "Backup at: $PLUGIN_DIR/dist.bak.$TS"
+```json
+{
+  "plugin": ["/path/to/opencode-kiro-auth"]
+}
 ```
 
-Revert:
+Then build and restart OpenCode to pick up changes:
 
 ```bash
-PLUGIN_DIR="$HOME/.cache/opencode/node_modules/@zhafron/opencode-kiro-auth"
-rm -rf "$PLUGIN_DIR/dist"
-mv "$PLUGIN_DIR/dist.bak.YYYYMMDD-HHMMSS" "$PLUGIN_DIR/dist"
+npm run build
 ```
 
 ## Troubleshooting
@@ -262,23 +267,7 @@ The placeholder values are not used for API calls.
 **Important:** Ensure `auto_sync_kiro_cli` is `true` in `~/.config/opencode/kiro.json`
 and that `kiro-cli login` succeeds before applying this workaround.
 
-### Error: ERR_INVALID_URL
 
-`TypeError [ERR_INVALID_URL]: "undefined/chat/completions" cannot be parsed as a URL`
-
-If this happens, check your auth.json in .local/share/opencode.
-example:
-
-```json
-{
-  "kiro": {
-    "type": "api",
-    "key": "whatever"
-  }
-}
-```
-
-## Configuration
 
 The plugin supports extensive configuration options.
 Edit `~/.config/opencode/kiro.json`:
