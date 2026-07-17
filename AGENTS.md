@@ -35,7 +35,7 @@ messages so the auto-semver tagger bumps correctly:
 | Prefix | Bump | Example |
 |--------|------|---------|
 | `feat:` | minor | `feat: add sonnet 5 support` |
-| `fix:`, `perf:`, `refactor:`, `test:`, `chore:`, `docs:`, `style:`, `ci:` | patch | `fix: handle null profileArn` |
+| `fix:`, `perf:`, `refactor:`, `test:`, `chore:`, `docs:`, `style:`, `ci:`, `build:`, `revert:` | patch | `fix: handle null profileArn` |
 | `BREAKING CHANGE:` in body | major | `feat: rewrite auth\n\nBREAKING CHANGE: ...` |
 
 Plain messages (no prefix) won't trigger a version bump. Any conventional commit

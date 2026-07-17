@@ -22,13 +22,55 @@ jobs:
 
       - name: Calculate next version
         id: semver
-        uses: bitshifted/git-auto-semver@v2
-        with:
-          main_branch: master
+        run: |
+          # Get latest semver tag (v-prefixed only)
+          LATEST_TAG=$(git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No version tag found, starting at 1.0.0"
+            CURRENT="1.0.0"
+          else
+            CURRENT="${LATEST_TAG#v}"
+          fi
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+          # Get commits since last tag
+          SINCE="${LATEST_TAG:-}"
+          COMMITS=$(git log "${SINCE}..HEAD" --pretty=format:"%s" 2>/dev/null || true)
+
+          BUMP="none"
+          while IFS= read -r msg; do
+            [ -z "$msg" ] && continue
+            if echo "$msg" | grep -qE '^(feat|feature)\s'; then
+              [ "$BUMP" = "none" ] && BUMP="minor"
+            elif echo "$msg" | grep -qiE '^BREAKING CHANGE'; then
+              BUMP="major"
+            elif echo "$msg" | grep -qE '^(build|chore|ci|docs|fix|perf|refactor|revert|style|test)\s'; then
+              [ "$BUMP" = "none" ] && BUMP="patch"
+            fi
+          done <<< "$COMMITS"
+
+          case "$BUMP" in
+            major)
+              MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor)
+              MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch)
+              PATCH=$((PATCH + 1)) ;;
+            *)
+              echo "No version bump needed"
+              echo "next=" >> "$GITHUB_OUTPUT"
+              exit 0 ;;
+          esac
+
+          NEXT="${MAJOR}.${MINOR}.${PATCH}"
+          echo "Current: $CURRENT -> Next: $NEXT (bump: $BUMP)"
+          echo "next=v$NEXT" >> "$GITHUB_OUTPUT"
 
       - name: Commit dist and push tag
+        if: steps.semver.outputs.next
         run: |
-          TAG="v${{ steps.semver.outputs.version-string }}"
+          TAG="${{ steps.semver.outputs.next }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add dist/
@@ -40,8 +82,9 @@ jobs:
           git push origin v1 --force
 
       - name: Create GitHub Release
+        if: steps.semver.outputs.next
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.semver.outputs.version-string }}
+          tag_name: ${{ steps.semver.outputs.next }}
           generate_release_notes: true
           make_latest: true
