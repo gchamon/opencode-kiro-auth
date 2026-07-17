@@ -32,7 +32,7 @@ Add the plugin to your `opencode.json` or `opencode.jsonc`:
 
 ```json
 {
-  "plugin": ["github:gchamon/opencode-kiro-auth"],
+  "plugin": ["github:gchamon/opencode-kiro-auth#v1"],
   "provider": {
     "kiro": {
       "models": {

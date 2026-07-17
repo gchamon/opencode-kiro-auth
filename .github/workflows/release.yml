@@ -2,30 +2,52 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [master]
+
+permissions:
+  contents: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: oven-sh/setup-bun@v2
-
       - run: bun install
-
       - run: bun run typecheck
-
       - run: bun run build
 
-      - name: Setup Node.js for npm publish
-        uses: actions/setup-node@v4
+      - name: Calculate next version
+        id: semver
+        uses: ietf-tools/semver-action@v1
         with:
-          node-version: '24'
-          registry-url: 'https://registry.npmjs.org'
+          token: ${{ github.token }}
+          branch: master
+          tagFilter: '^v\d+\.\d+\.\d+$'
+          noVersionBumpBehavior: silent
+          noNewCommitBehavior: silent
 
-      - name: Publish to npm
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Commit dist and push tag
+        if: steps.semver.outputs.next
+        run: |
+          TAG="${{ steps.semver.outputs.next }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dist/
+          git commit -m "build: dist for ${TAG}" || true
+          git push origin HEAD:master
+          git tag "$TAG"
+          git push origin "$TAG"
+          git tag -f v1 "$TAG"
+          git push origin v1 --force
+
+      - name: Create GitHub Release
+        if: steps.semver.outputs.next
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.semver.outputs.next }}
+          generate_release_notes: true
+          make_latest: true
