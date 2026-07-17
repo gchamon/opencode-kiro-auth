@@ -28,7 +28,10 @@ models with substantial trial quotas.
 
 ## Installation
 
-Add the plugin to your `opencode.json` or `opencode.jsonc`:
+Add the plugin to your `opencode.json` or `opencode.jsonc`. The `#v1` ref is required:
+built output (`dist/`) is only published on release tags, not on `master`, so the bare
+`github:gchamon/opencode-kiro-auth` spec will not work. `#v1` always tracks the latest
+release; you can also pin an exact version (e.g. `#v1.0.0`).
 
 ```json
 {

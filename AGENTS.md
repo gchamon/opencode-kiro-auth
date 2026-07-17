@@ -121,3 +121,15 @@ Runtime plugin config is user-side JSON at `~/.config/opencode/kiro.json`, valid
 by the zod schema in `src/plugin/config/schema.ts` and loaded in
 `src/plugin/config/loader.ts`. Config options are documented in the README — keep the
 schema and README in sync when adding options.
+
+## Release pipeline
+
+`.github/workflows/release.yml` runs on every push to master: typecheck + build, then
+computes the next semver from conventional-commit prefixes since the last tag
+(`feat:` → minor, `fix:`/`chore:`/etc. → patch, `BREAKING CHANGE` → major; other
+messages cut no release). It commits `dist/` on a **detached commit reachable only via
+the release tags** (`vX.Y.Z` plus the force-moved floating `v1`) and creates a GitHub
+Release. `dist/` must never be committed to master — users install with
+`github:gchamon/opencode-kiro-auth#v1`, which OpenCode resolves via npm Arborist with
+`ignoreScripts: true`, so the tagged tree must always contain prebuilt `dist/`
+(build-on-install is impossible).

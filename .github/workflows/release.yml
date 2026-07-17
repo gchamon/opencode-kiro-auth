@@ -70,6 +70,9 @@ jobs:
           echo "Current: $CURRENT -> Next: $NEXT (bump: $BUMP)"
           echo "next=v$NEXT" >> "$GITHUB_OUTPUT"
 
+      # The dist commit is intentionally NOT pushed to master: it is reachable
+      # only through the release tags, so master stays free of build artifacts.
+      # Users install via `github:gchamon/opencode-kiro-auth#v1` (or a pinned tag).
       - name: Commit dist and push tag
         if: steps.semver.outputs.next
         run: |
@@ -78,7 +81,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -f dist/
           git commit -m "build: dist for ${TAG}" || true
-          git push origin HEAD:master
           git tag "$TAG"
           git push origin "$TAG"
           git tag -f v1 "$TAG"
