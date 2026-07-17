@@ -41,11 +41,11 @@ jobs:
           BUMP="none"
           while IFS= read -r msg; do
             [ -z "$msg" ] && continue
-            if echo "$msg" | grep -qE '^(feat|feature)\s'; then
+            if echo "$msg" | grep -qE '^(feat|feature):'; then
               [ "$BUMP" = "none" ] && BUMP="minor"
             elif echo "$msg" | grep -qiE '^BREAKING CHANGE'; then
               BUMP="major"
-            elif echo "$msg" | grep -qE '^(build|chore|ci|docs|fix|perf|refactor|revert|style|test)\s'; then
+            elif echo "$msg" | grep -qE '^(build|chore|ci|docs|fix|perf|refactor|revert|style|test):'; then
               [ "$BUMP" = "none" ] && BUMP="patch"
             fi
           done <<< "$COMMITS"
