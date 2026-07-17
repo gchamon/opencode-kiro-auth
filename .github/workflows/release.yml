@@ -28,18 +28,18 @@ jobs:
         run: |
           # Get latest semver tag (v-prefixed only)
           LATEST_TAG=$(git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+
           if [ -z "$LATEST_TAG" ]; then
-            echo "No version tag found, starting at 1.0.0"
-            CURRENT="1.0.0"
-          else
-            CURRENT="${LATEST_TAG#v}"
+            echo "No version tag found, creating initial v1.0.0"
+            echo "next=v1.0.0" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
+          CURRENT="${LATEST_TAG#v}"
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
 
           # Get commits since last tag
-          SINCE="${LATEST_TAG:-}"
-          COMMITS=$(git log "${SINCE}..HEAD" --pretty=format:"%s" 2>/dev/null || true)
+          COMMITS=$(git log "${LATEST_TAG}..HEAD" --pretty=format:"%s" 2>/dev/null || true)
 
           BUMP="none"
           while IFS= read -r msg; do
