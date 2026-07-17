@@ -35,11 +35,11 @@ messages so the auto-semver tagger bumps correctly:
 | Prefix | Bump | Example |
 |--------|------|---------|
 | `feat:` | minor | `feat: add sonnet 5 support` |
-| `fix:`, `perf:`, `refactor:`, `test:` | patch | `fix: handle null profileArn` |
-| `chore:`, `docs:`, `style:`, `ci:` | no bump (skipped) | `chore: update README` |
+| `fix:`, `perf:`, `refactor:`, `test:`, `chore:`, `docs:`, `style:`, `ci:` | patch | `fix: handle null profileArn` |
 | `BREAKING CHANGE:` in body | major | `feat: rewrite auth\n\nBREAKING CHANGE: ...` |
 
-Plain messages (no prefix) won't trigger a version bump. After merge, the pipeline
+Plain messages (no prefix) won't trigger a version bump. Any conventional commit
+prefix produces a bump. After merge, the pipeline
 builds `dist/`, commits it, pushes a semver tag (e.g. `v1.12.0`), moves the floating
 `v1` tag, and creates a GitHub Release with auto-generated changelog notes.
 Users should pin `v1` in `opencode.json`, not a specific patch version.

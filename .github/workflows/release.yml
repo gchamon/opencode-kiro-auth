@@ -22,18 +22,13 @@ jobs:
 
       - name: Calculate next version
         id: semver
-        uses: ietf-tools/semver-action@v1
+        uses: bitshifted/git-auto-semver@v2
         with:
-          token: ${{ github.token }}
-          branch: master
-          tagFilter: '^v\d+\.\d+\.\d+$'
-          noVersionBumpBehavior: silent
-          noNewCommitBehavior: silent
+          main_branch: master
 
       - name: Commit dist and push tag
-        if: steps.semver.outputs.next
         run: |
-          TAG="${{ steps.semver.outputs.next }}"
+          TAG="v${{ steps.semver.outputs.version-string }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add dist/
@@ -45,9 +40,8 @@ jobs:
           git push origin v1 --force
 
       - name: Create GitHub Release
-        if: steps.semver.outputs.next
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.semver.outputs.next }}
+          tag_name: v${{ steps.semver.outputs.version-string }}
           generate_release_notes: true
           make_latest: true
