@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     branches: [master]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -96,14 +97,48 @@ jobs:
           generate_release_notes: true
           make_latest: true
 
+      # Determine the version that should be on npm right now. This is
+      # intentionally independent of steps.semver.outputs.next (which is only
+      # set when a *new* bump was just computed) so that re-running this
+      # workflow after a transient publish failure — or running it manually
+      # via workflow_dispatch — still finds and publishes the correct
+      # version, whether or not "Commit dist and push tag" ran this time.
+      - name: Determine publish version
+        id: publish_version
+        run: |
+          git fetch --tags --force
+          LATEST_TAG=$(git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+          if [ -n "$LATEST_TAG" ]; then
+            VERSION="${LATEST_TAG#v}"
+          else
+            VERSION=$(node -p "require('./package.json').version")
+          fi
+          echo "Target publish version: $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # Idempotency check: skip publishing if npm already has this version,
+      # so retries/manual re-runs never fail on a duplicate-version error.
+      - name: Check npm registry
+        id: npm_check
+        run: |
+          PKG_NAME=$(node -p "require('./package.json').name")
+          VERSION="${{ steps.publish_version.outputs.version }}"
+          PUBLISHED=$(npm view "$PKG_NAME@$VERSION" version 2>/dev/null || true)
+          if [ "$PUBLISHED" = "$VERSION" ]; then
+            echo "$PKG_NAME@$VERSION is already on npm, skipping publish."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$PKG_NAME@$VERSION not found on npm, will publish."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
       # Publishes via npm Trusted Publishing (OIDC): configure the trusted
       # publisher on npmjs.com (package settings -> Trusted Publisher ->
       # GitHub Actions, repo gchamon/opencode-kiro-auth, workflow release.yml).
       # Trusted publishing requires npm >= 11.5.1, hence the self-upgrade.
       - name: Publish to npm
-        if: steps.semver.outputs.next
+        if: steps.npm_check.outputs.should_publish == 'true'
         run: |
           npm install -g npm@latest
-          TAG="${{ steps.semver.outputs.next }}"
-          npm pkg set version="${TAG#v}"
+          npm pkg set version="${{ steps.publish_version.outputs.version }}"
           npm publish --ignore-scripts
