@@ -1,8 +1,8 @@
 # OpenCode Kiro Auth Plugin
 
-[![npm version](https://img.shields.io/npm/v/@zhafron/opencode-kiro-auth)](https://www.npmjs.com/package/@zhafron/opencode-kiro-auth)
-[![npm downloads](https://img.shields.io/npm/dm/@zhafron/opencode-kiro-auth)](https://www.npmjs.com/package/@zhafron/opencode-kiro-auth)
-[![license](https://img.shields.io/npm/l/@zhafron/opencode-kiro-auth)](https://www.npmjs.com/package/@zhafron/opencode-kiro-auth)
+[![npm version](https://img.shields.io/npm/v/@gchamon/opencode-kiro-auth)](https://www.npmjs.com/package/@gchamon/opencode-kiro-auth)
+[![npm downloads](https://img.shields.io/npm/dm/@gchamon/opencode-kiro-auth)](https://www.npmjs.com/package/@gchamon/opencode-kiro-auth)
+[![license](https://img.shields.io/npm/l/@gchamon/opencode-kiro-auth)](https://www.npmjs.com/package/@gchamon/opencode-kiro-auth)
 
 OpenCode plugin for AWS Kiro (CodeWhisperer) providing access to Claude Sonnet and Haiku
 models with substantial trial quotas.
@@ -28,14 +28,23 @@ models with substantial trial quotas.
 
 ## Installation
 
-Add the plugin to your `opencode.json` or `opencode.jsonc`. The `#v1` ref is required:
-built output (`dist/`) is only published on release tags, not on `master`, so the bare
-`github:gchamon/opencode-kiro-auth` spec will not work. `#v1` always tracks the latest
-release; you can also pin an exact version (e.g. `#v1.0.0`).
+Add the plugin to your `opencode.json` or `opencode.jsonc`. Installing from npm is
+recommended — OpenCode caches registry packages locally, so startup stays fast:
+
+```json
+{ "plugin": ["@gchamon/opencode-kiro-auth"] }
+```
+
+Alternatively, install straight from GitHub with `github:gchamon/opencode-kiro-auth#v1`
+(the `#v1` ref is required: built output is only published on release tags, never on
+`master`). Note that git specs are re-resolved on every OpenCode startup, which is
+noticeably slower than the npm route.
+
+Full example with model definitions:
 
 ```json
 {
-  "plugin": ["github:gchamon/opencode-kiro-auth#v1"],
+  "plugin": ["@gchamon/opencode-kiro-auth"],
   "provider": {
     "kiro": {
       "models": {
@@ -73,12 +82,12 @@ release; you can also pin an exact version (e.g. `#v1.0.0`).
         },
         "claude-sonnet-5": {
           "name": "Claude Sonnet 5",
-          "limit": { "context": 200000, "output": 64000 },
+          "limit": { "context": 1000000, "output": 64000 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "claude-sonnet-5-thinking": {
           "name": "Claude Sonnet 5 Thinking",
-          "limit": { "context": 200000, "output": 64000 },
+          "limit": { "context": 1000000, "output": 64000 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
           "variants": {
             "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
@@ -158,12 +167,12 @@ release; you can also pin an exact version (e.g. `#v1.0.0`).
         },
         "claude-opus-4-8": {
           "name": "Claude Opus 4.8",
-          "limit": { "context": 200000, "output": 64000 },
+          "limit": { "context": 1000000, "output": 128000 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] }
         },
         "claude-opus-4-8-thinking": {
           "name": "Claude Opus 4.8 Thinking",
-          "limit": { "context": 200000, "output": 64000 },
+          "limit": { "context": 1000000, "output": 128000 },
           "modalities": { "input": ["text", "image", "pdf"], "output": ["text"] },
           "variants": {
             "low": { "thinkingConfig": { "thinkingBudget": 8192 } },
@@ -193,23 +202,35 @@ release; you can also pin an exact version (e.g. `#v1.0.0`).
             "max": { "thinkingConfig": { "thinkingBudget": 32768 } }
           }
         },
-        "auto": { "name": "Auto (1.0x)" },
+        "auto": { "name": "Auto (1.0x)", "limit": { "context": 1000000, "output": 64000 } },
         "claude-sonnet-4": {
           "name": "Claude Sonnet 4.0 (1.3x)",
           "limit": { "context": 200000, "output": 64000 }
         },
+        "gpt-5.6-sol": {
+          "name": "GPT-5.6 Sol (2.4x)",
+          "limit": { "context": 272000, "output": 64000 }
+        },
+        "gpt-5.6-terra": {
+          "name": "GPT-5.6 Terra (1.2x)",
+          "limit": { "context": 272000, "output": 64000 }
+        },
+        "gpt-5.6-luna": {
+          "name": "GPT-5.6 Luna (0.6x)",
+          "limit": { "context": 272000, "output": 64000 }
+        },
         "deepseek-3.2": {
           "name": "DeepSeek 3.2 (0.25x)",
-          "limit": { "context": 128000, "output": 64000 }
+          "limit": { "context": 164000, "output": 64000 }
         },
         "glm-5": { "name": "GLM-5 (0.5x)", "limit": { "context": 200000, "output": 64000 } },
         "minimax-m2.5": {
           "name": "MiniMax 2.5 (0.25x)",
-          "limit": { "context": 200000, "output": 64000 }
+          "limit": { "context": 196000, "output": 64000 }
         },
         "minimax-m2.1": {
           "name": "MiniMax 2.1 (0.15x)",
-          "limit": { "context": 200000, "output": 64000 }
+          "limit": { "context": 196000, "output": 64000 }
         },
         "qwen3-coder-next": {
           "name": "Qwen3 Coder Next (0.05x)",

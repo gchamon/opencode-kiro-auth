@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: write
+  # Required for npm Trusted Publishing (OIDC) — no NPM_TOKEN secret needed.
+  id-token: write
 
 jobs:
   release:
@@ -93,3 +95,15 @@ jobs:
           tag_name: ${{ steps.semver.outputs.next }}
           generate_release_notes: true
           make_latest: true
+
+      # Publishes via npm Trusted Publishing (OIDC): configure the trusted
+      # publisher on npmjs.com (package settings -> Trusted Publisher ->
+      # GitHub Actions, repo gchamon/opencode-kiro-auth, workflow release.yml).
+      # Trusted publishing requires npm >= 11.5.1, hence the self-upgrade.
+      - name: Publish to npm
+        if: steps.semver.outputs.next
+        run: |
+          npm install -g npm@latest
+          TAG="${{ steps.semver.outputs.next }}"
+          npm pkg set version="${TAG#v}"
+          npm publish --ignore-scripts

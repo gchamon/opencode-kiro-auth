@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-An OpenCode plugin (`@zhafron/opencode-kiro-auth`) that authenticates against AWS Kiro
+An OpenCode plugin (`@gchamon/opencode-kiro-auth`) that authenticates against AWS Kiro
 (CodeWhisperer / Q Developer) and exposes Claude models through OpenCode's
 `@ai-sdk/openai-compatible` provider. This repo is a fork (`gchamon/opencode-kiro-auth`)
 of `tickernelz/opencode-kiro-auth`.
@@ -129,7 +129,10 @@ computes the next semver from conventional-commit prefixes since the last tag
 (`feat:` → minor, `fix:`/`chore:`/etc. → patch, `BREAKING CHANGE` → major; other
 messages cut no release). It commits `dist/` on a **detached commit reachable only via
 the release tags** (`vX.Y.Z` plus the force-moved floating `v1`) and creates a GitHub
-Release. `dist/` must never be committed to master — users install with
-`github:gchamon/opencode-kiro-auth#v1`, which OpenCode resolves via npm Arborist with
-`ignoreScripts: true`, so the tagged tree must always contain prebuilt `dist/`
-(build-on-install is impossible).
+Release, and publishes `@gchamon/opencode-kiro-auth` to npm via Trusted Publishing
+(OIDC; configured on npmjs.com, no token secret). `dist/` must never be committed to
+master — OpenCode installs plugins via npm Arborist with `ignoreScripts: true`, so
+whatever users install (the npm package, or the `#v1`/`vX.Y.Z` git tags) must contain
+prebuilt `dist/`; build-on-install is impossible. npm is the recommended install spec
+(OpenCode caches registry packages by name — fast startup); git specs re-resolve on
+every startup and are slow.

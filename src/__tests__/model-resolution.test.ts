@@ -25,6 +25,15 @@ describe('resolveKiroModel', () => {
     expect(SUPPORTED_MODELS).toContain('claude-sonnet-5-thinking')
   })
 
+  test('resolves gpt-5.6 sol/terra/luna', () => {
+    expect(resolveKiroModel('gpt-5.6-sol')).toBe('gpt-5.6-sol')
+    expect(resolveKiroModel('gpt-5.6-terra')).toBe('gpt-5.6-terra')
+    expect(resolveKiroModel('gpt-5.6-luna')).toBe('gpt-5.6-luna')
+    expect(SUPPORTED_MODELS).toContain('gpt-5.6-sol')
+    expect(SUPPORTED_MODELS).toContain('gpt-5.6-terra')
+    expect(SUPPORTED_MODELS).toContain('gpt-5.6-luna')
+  })
+
   test('rejects removed qwen3-coder-480b slug', () => {
     expect(() => resolveKiroModel('qwen3-coder-480b')).toThrow(
       'Unsupported model: qwen3-coder-480b'

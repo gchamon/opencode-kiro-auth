@@ -56,7 +56,7 @@ export const createKiroPlugin =
           input.provider[id].models = {
             auto: {
               name: 'Auto (1.0x)',
-              limit: { context: 200000, output: 64000 },
+              limit: { context: 1000000, output: 64000 },
               modalities: { input: ['text', 'image', 'pdf'], output: ['text'] }
             },
             // Claude Sonnet
@@ -72,6 +72,16 @@ export const createKiroPlugin =
             },
             'claude-sonnet-4-6': {
               name: 'Claude Sonnet 4.6 (1.3x)',
+              limit: { context: 1000000, output: 64000 },
+              modalities: { input: ['text', 'image', 'pdf'], output: ['text'] }
+            },
+            'claude-sonnet-5': {
+              name: 'Claude Sonnet 5 (1.3x)',
+              limit: { context: 1000000, output: 64000 },
+              modalities: { input: ['text', 'image', 'pdf'], output: ['text'] }
+            },
+            'claude-sonnet-5-thinking': {
+              name: 'Claude Sonnet 5 Thinking (1.3x)',
               limit: { context: 1000000, output: 64000 },
               modalities: { input: ['text', 'image', 'pdf'], output: ['text'] }
             },
@@ -99,18 +109,34 @@ export const createKiroPlugin =
             },
             'claude-opus-4-8': {
               name: 'Claude Opus 4.8 (2.2x)',
-              limit: { context: 1000000, output: 64000 },
+              limit: { context: 1000000, output: 128000 },
               modalities: { input: ['text', 'image', 'pdf'], output: ['text'] }
             },
             'claude-opus-4-8-thinking': {
               name: 'Claude Opus 4.8 Thinking (2.2x)',
-              limit: { context: 1000000, output: 64000 },
+              limit: { context: 1000000, output: 128000 },
               modalities: { input: ['text', 'image', 'pdf'], output: ['text'] }
+            },
+            // OpenAI GPT-5.6
+            'gpt-5.6-sol': {
+              name: 'GPT-5.6 Sol (2.4x)',
+              limit: { context: 272000, output: 64000 },
+              modalities: { input: ['text'], output: ['text'] }
+            },
+            'gpt-5.6-terra': {
+              name: 'GPT-5.6 Terra (1.2x)',
+              limit: { context: 272000, output: 64000 },
+              modalities: { input: ['text'], output: ['text'] }
+            },
+            'gpt-5.6-luna': {
+              name: 'GPT-5.6 Luna (0.6x)',
+              limit: { context: 272000, output: 64000 },
+              modalities: { input: ['text'], output: ['text'] }
             },
             // Open weight models
             'deepseek-3.2': {
               name: 'DeepSeek 3.2 (0.25x)',
-              limit: { context: 128000, output: 64000 },
+              limit: { context: 164000, output: 64000 },
               modalities: { input: ['text'], output: ['text'] }
             },
             'glm-5': {
@@ -120,12 +146,12 @@ export const createKiroPlugin =
             },
             'minimax-m2.5': {
               name: 'MiniMax M2.5 (0.25x)',
-              limit: { context: 200000, output: 64000 },
+              limit: { context: 196000, output: 64000 },
               modalities: { input: ['text'], output: ['text'] }
             },
             'minimax-m2.1': {
               name: 'MiniMax M2.1 (0.15x)',
-              limit: { context: 200000, output: 64000 },
+              limit: { context: 196000, output: 64000 },
               modalities: { input: ['text'], output: ['text'] }
             },
             'qwen3-coder-next': {
