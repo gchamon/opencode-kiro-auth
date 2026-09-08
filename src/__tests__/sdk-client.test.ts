@@ -102,6 +102,33 @@ describe('SDK client', () => {
     clearSdkClientCache()
   })
 
+  test('still injects effort when the SDK serializes the body to a Uint8Array', async () => {
+    clearSdkClientCache()
+
+    const client = createSdkClient(auth(), 'us-east-1', 'max')
+
+    // Newer @aws-sdk/core (JsonCodec2) serializes the request body to raw
+    // bytes instead of a string. Simulate that by converting the body to a
+    // Uint8Array right after the real serialize step runs, before the
+    // effort middleware (registered at the 'build' step) sees it.
+    client.middlewareStack.add(
+      (next: any) => async (args: any) => {
+        if (typeof args.request?.body === 'string') {
+          args.request.body = new TextEncoder().encode(args.request.body)
+        }
+        return next(args)
+      },
+      { step: 'serialize', name: 'forceByteBody', priority: 'low' }
+    )
+
+    const { body, request } = await captureRequest(client)
+
+    expect(body.additionalModelRequestFields.output_config.effort).toBe('max')
+    expect(Number(request.headers['content-length'])).toBe(Buffer.byteLength(request.bodyText))
+
+    clearSdkClientCache()
+  })
+
   test('does not reuse a cached client across different effort levels', () => {
     clearSdkClientCache()
 
