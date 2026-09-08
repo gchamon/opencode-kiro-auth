@@ -51,16 +51,24 @@ export function createSdkClient(
     client.middlewareStack.add(
       (next: any) => async (args: any) => {
         // The SDK serializes input to args.input, we need to modify the body
-        // before it's sent. The body is in args.request.body as a string.
+        // before it's sent. Newer @aws-sdk/core (JsonCodec2) serializes the
+        // body to a Uint8Array rather than a string, so JSON.parse on it
+        // throws, is silently swallowed below, and the effort config is
+        // dropped. Decode bytes explicitly and re-encode in the same shape
+        // the body arrived in.
         if (args.request?.body) {
           try {
-            const body = JSON.parse(args.request.body)
+            const rawBody = args.request.body
+            const isBytes = rawBody instanceof Uint8Array
+            const text = isBytes ? new TextDecoder().decode(rawBody) : rawBody
+            const body = JSON.parse(text)
             body.additionalModelRequestFields = {
               output_config: {
                 effort
               }
             }
-            args.request.body = JSON.stringify(body)
+            const nextText = JSON.stringify(body)
+            args.request.body = isBytes ? new TextEncoder().encode(nextText) : nextText
           } catch {
             // If body parsing fails, continue without modification
           }
