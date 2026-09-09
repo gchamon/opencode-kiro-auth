@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 import {
   budgetToEffort,
   getEffectiveEffort,
+  isReasoningModel,
   resolveEffort,
   supportsEffort,
   supportsXHighEffort
@@ -22,6 +23,26 @@ describe('effort module', () => {
     test('returns false for unsupported models', () => {
       expect(supportsEffort('claude-haiku-4.5')).toBe(false)
       expect(supportsEffort('unknown-model')).toBe(false)
+    })
+
+    test('returns true for GPT-5.6 reasoning models', () => {
+      expect(supportsEffort('gpt-5.6-sol')).toBe(true)
+      expect(supportsEffort('gpt-5.6-terra')).toBe(true)
+      expect(supportsEffort('gpt-5.6-luna')).toBe(true)
+    })
+  })
+
+  describe('isReasoningModel', () => {
+    test('returns true only for GPT-5.6 tiers', () => {
+      expect(isReasoningModel('gpt-5.6-sol')).toBe(true)
+      expect(isReasoningModel('gpt-5.6-terra')).toBe(true)
+      expect(isReasoningModel('gpt-5.6-luna')).toBe(true)
+    })
+
+    test('returns false for Claude and unknown models', () => {
+      expect(isReasoningModel('claude-opus-5')).toBe(false)
+      expect(isReasoningModel('claude-sonnet-4.6')).toBe(false)
+      expect(isReasoningModel('unknown-model')).toBe(false)
     })
   })
 
@@ -52,6 +73,12 @@ describe('effort module', () => {
       expect(resolveEffort('claude-opus-4.8', 'xhigh')).toBe('xhigh')
       expect(resolveEffort('claude-opus-5', 'xhigh')).toBe('xhigh')
       expect(resolveEffort('claude-opus-5', 'max')).toBe('max')
+    })
+
+    test('keeps the full ladder for GPT-5.6 reasoning models', () => {
+      expect(resolveEffort('gpt-5.6-sol', 'low')).toBe('low')
+      expect(resolveEffort('gpt-5.6-sol', 'xhigh')).toBe('xhigh')
+      expect(resolveEffort('gpt-5.6-sol', 'max')).toBe('max')
     })
 
     test('clamps xhigh to max for models without xhigh support', () => {

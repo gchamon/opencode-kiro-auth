@@ -50,17 +50,43 @@ const EFFORT_CAPABLE_MODELS = new Set([
 ])
 
 /**
+ * GPT-5.6 reasoning-style family.
+ *
+ * These models diverge from Claude in three ways (mirrors kirocc's
+ * IsReasoningModel):
+ * 1. Effort travels in `reasoning.effort`, not `output_config.effort`
+ *    (see sdk-client.ts).
+ * 2. Their effort enum includes `none`, which explicitly disables reasoning
+ *    rather than being a rankable level.
+ * 3. They emit an opaque redacted reasoning blob after tool_use that the
+ *    stream must drain past an adapter-side stop (see sdk-stream-transformer.ts).
+ *
+ * All GPT-5.6 tiers accept the full low→max ladder plus xhigh.
+ */
+const REASONING_MODELS = new Set(['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna'])
+
+/**
+ * Check if a model belongs to the GPT-5.6 reasoning-style family.
+ *
+ * Reasoning models carry effort in `reasoning.effort` and support the `none`
+ * level. Everything else is Claude-compatible (`output_config.effort`).
+ */
+export function isReasoningModel(kiroModel: string): boolean {
+  return REASONING_MODELS.has(kiroModel)
+}
+
+/**
  * Check if a model supports the effort parameter.
  */
 export function supportsEffort(kiroModel: string): boolean {
-  return EFFORT_CAPABLE_MODELS.has(kiroModel)
+  return EFFORT_CAPABLE_MODELS.has(kiroModel) || REASONING_MODELS.has(kiroModel)
 }
 
 /**
  * Check if a model supports xhigh effort level.
  */
 export function supportsXHighEffort(kiroModel: string): boolean {
-  return XHIGH_CAPABLE_MODELS.has(kiroModel)
+  return XHIGH_CAPABLE_MODELS.has(kiroModel) || REASONING_MODELS.has(kiroModel)
 }
 
 /**

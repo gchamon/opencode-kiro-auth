@@ -11,21 +11,26 @@ function streamOf(events: any[]) {
   }
 }
 
-async function collect(events: any[]) {
+async function collect(events: any[], model: string = MODEL) {
   const chunks: any[] = []
-  for await (const chunk of transformSdkStream(streamOf(events), MODEL, 'conversation-1')) {
+  for await (const chunk of transformSdkStream(streamOf(events), model, 'conversation-1')) {
     chunks.push(chunk)
   }
 
   let reasoning = ''
   let text = ''
+  const toolCalls: any[] = []
+  let finishReason: string | null = null
   for (const chunk of chunks) {
-    const delta = chunk.choices?.[0]?.delta
+    const choice = chunk.choices?.[0]
+    const delta = choice?.delta
     if (delta?.reasoning_content) reasoning += delta.reasoning_content
     if (delta?.content) text += delta.content
+    if (delta?.tool_calls) toolCalls.push(...delta.tool_calls)
+    if (choice?.finish_reason) finishReason = choice.finish_reason
   }
 
-  return { reasoning, text }
+  return { reasoning, text, toolCalls, finishReason }
 }
 
 describe('native reasoning stream', () => {
@@ -102,5 +107,26 @@ describe('native reasoning stream', () => {
 
     expect(reasoning).toBe('thought')
     expect(text).toBe('Answer.')
+  })
+
+  // GPT-5.6 shape: native reasoning then a tool_use with no assistant text in
+  // between. The thinking block must close cleanly and the tool call surface,
+  // rather than leaving a dangling open reasoning block.
+  test('closes the reasoning block when a tool_use follows reasoning directly', async () => {
+    const { reasoning, text, toolCalls, finishReason } = await collect(
+      [
+        { reasoningContentEvent: { text: 'planning the call' } },
+        {
+          toolUseEvent: { toolUseId: 'tool-1', name: 'search', input: '{"q":"kiro"}' }
+        }
+      ],
+      'gpt-5.6-sol'
+    )
+
+    expect(reasoning).toBe('planning the call')
+    expect(text).toBe('')
+    expect(toolCalls.length).toBeGreaterThan(0)
+    expect(toolCalls[0]?.id ?? toolCalls[0]?.function?.name).toBeDefined()
+    expect(finishReason).toBe('tool_calls')
   })
 })

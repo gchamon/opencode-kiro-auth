@@ -21,9 +21,9 @@ interface ModelSpec {
   limit: { context: number; output: number }
   modalities: Modalities
   /**
-   * Emit a companion `-thinking` entry. Only set for Claude models that accept
-   * `output_config.effort`; the effort ladder is derived from the model's own
-   * capabilities in effort.ts.
+   * Emit a companion `-thinking` entry. Set for any effort-capable model
+   * (Claude via `output_config.effort`, GPT-5.6 via `reasoning.effort`); the
+   * effort ladder is derived from the model's own capabilities in effort.ts.
    */
   thinking?: boolean
 }
@@ -31,9 +31,9 @@ interface ModelSpec {
 /**
  * Models Kiro exposes, keyed by the OpenCode-facing model ID.
  *
- * Claude, GPT-5.6, and open-weight models. GPT-5.6 tiers are advertised without
- * thinking companions because they configure reasoning through `reasoning.effort`
- * rather than Claude's `output_config.effort` contract.
+ * Claude, GPT-5.6, and open-weight models. GPT-5.6 tiers advertise a `-thinking`
+ * companion like Claude, but their effort travels in `reasoning.effort` rather
+ * than `output_config.effort` (see plugin/effort.ts and plugin/sdk-client.ts).
  */
 const MODEL_SPECS: Record<string, ModelSpec> = {
   auto: { name: 'Auto', rate: '1.0x', limit: CONTEXT_1M, modalities: MULTIMODAL },
@@ -112,24 +112,27 @@ const MODEL_SPECS: Record<string, ModelSpec> = {
     thinking: true
   },
 
-  // OpenAI GPT-5.6
+  // OpenAI GPT-5.6 (reasoning-style effort)
   'gpt-5.6-sol': {
     name: 'GPT-5.6 Sol',
     rate: '2.4x',
     limit: { context: 272000, output: 64000 },
-    modalities: TEXT_ONLY
+    modalities: TEXT_ONLY,
+    thinking: true
   },
   'gpt-5.6-terra': {
     name: 'GPT-5.6 Terra',
     rate: '1.0x',
     limit: { context: 272000, output: 64000 },
-    modalities: TEXT_ONLY
+    modalities: TEXT_ONLY,
+    thinking: true
   },
   'gpt-5.6-luna': {
     name: 'GPT-5.6 Luna',
     rate: '0.1x',
     limit: { context: 272000, output: 64000 },
-    modalities: TEXT_ONLY
+    modalities: TEXT_ONLY,
+    thinking: true
   },
 
   // Open weight models

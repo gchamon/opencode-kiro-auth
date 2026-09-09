@@ -114,4 +114,41 @@ describe('SDK client', () => {
 
     clearSdkClientCache()
   })
+
+  test('uses the reasoning.effort schema for GPT-5.6 models', async () => {
+    clearSdkClientCache()
+
+    const client = createSdkClient(auth(), 'us-east-1', 'high', 'gpt-5.6-sol')
+    const { body } = await captureRequest(client)
+
+    expect(body.additionalModelRequestFields.reasoning.effort).toBe('high')
+    expect(body.additionalModelRequestFields.output_config).toBeUndefined()
+
+    clearSdkClientCache()
+  })
+
+  test('uses the output_config schema for Claude models', async () => {
+    clearSdkClientCache()
+
+    const client = createSdkClient(auth(), 'us-east-1', 'high', 'claude-opus-5')
+    const { body } = await captureRequest(client)
+
+    expect(body.additionalModelRequestFields.output_config.effort).toBe('high')
+    expect(body.additionalModelRequestFields.reasoning).toBeUndefined()
+
+    clearSdkClientCache()
+  })
+
+  test('does not reuse a cached client across different models', () => {
+    clearSdkClientCache()
+
+    const gpt = createSdkClient(auth(), 'us-east-1', 'high', 'gpt-5.6-sol')
+    const claude = createSdkClient(auth(), 'us-east-1', 'high', 'claude-opus-5')
+    const gptAgain = createSdkClient(auth(), 'us-east-1', 'high', 'gpt-5.6-sol')
+
+    expect(claude).not.toBe(gpt)
+    expect(gptAgain).toBe(gpt)
+
+    clearSdkClientCache()
+  })
 })
