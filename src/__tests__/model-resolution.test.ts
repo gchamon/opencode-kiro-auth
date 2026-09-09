@@ -12,6 +12,9 @@ describe('resolveKiroModel', () => {
     expect(resolveKiroModel('gpt-5.6-sol')).toBe('gpt-5.6-sol')
     expect(resolveKiroModel('gpt-5.6-terra')).toBe('gpt-5.6-terra')
     expect(resolveKiroModel('gpt-5.6-luna')).toBe('gpt-5.6-luna')
+    expect(resolveKiroModel('gpt-5.6-sol-thinking')).toBe('gpt-5.6-sol')
+    expect(resolveKiroModel('gpt-5.6-terra-thinking')).toBe('gpt-5.6-terra')
+    expect(resolveKiroModel('gpt-5.6-luna-thinking')).toBe('gpt-5.6-luna')
   })
 
   test('keeps existing supported Claude slugs intact', () => {

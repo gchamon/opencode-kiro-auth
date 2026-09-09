@@ -2,6 +2,7 @@ import { GenerateAssistantResponseCommand } from '@aws/codewhisperer-streaming-c
 import type { AccountRepository } from '../../infrastructure/database/account-repository'
 import type { AccountManager } from '../../plugin/accounts'
 import type { KiroConfig } from '../../plugin/config'
+import { isReasoningModel } from '../../plugin/effort'
 import { isPermanentError } from '../../plugin/health'
 import * as logger from '../../plugin/logger'
 import { transformToSdkRequest } from '../../plugin/request'
@@ -154,7 +155,7 @@ export class RequestHandler {
         this.logSdkRequest(sdkPrep, acc, apiTimestamp)
       }
       try {
-        const client = createSdkClient(auth, sdkPrep.region, sdkPrep.effort)
+        const client = createSdkClient(auth, sdkPrep.region, sdkPrep.effort, sdkPrep.effectiveModel)
         const command = new GenerateAssistantResponseCommand({
           conversationState: sdkPrep.conversationState as any,
           profileArn: sdkPrep.profileArn
@@ -292,9 +293,12 @@ export class RequestHandler {
   }
 
   private logSdkRequest(prep: SdkPreparedRequest, acc: ManagedAccount, timestamp: string): void {
-    // Mirrors what the sdk-client middleware injects, so logs reflect the wire body.
+    // Mirrors what the sdk-client middleware injects, so logs reflect the wire
+    // body — including the reasoning vs output_config schema split by family.
     const additionalModelRequestFields = prep.effort
-      ? { output_config: { effort: prep.effort } }
+      ? isReasoningModel(prep.effectiveModel)
+        ? { reasoning: { effort: prep.effort } }
+        : { output_config: { effort: prep.effort } }
       : undefined
 
     logger.logApiRequest(

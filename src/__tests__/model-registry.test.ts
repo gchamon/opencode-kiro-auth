@@ -12,7 +12,10 @@ const XHIGH_MODELS = [
   'claude-opus-4-7-thinking',
   'claude-opus-4-8-thinking',
   'claude-opus-5-thinking',
-  'claude-sonnet-5-thinking'
+  'claude-sonnet-5-thinking',
+  'gpt-5.6-sol-thinking',
+  'gpt-5.6-terra-thinking',
+  'gpt-5.6-luna-thinking'
 ]
 
 describe('model registry', () => {
@@ -22,7 +25,7 @@ describe('model registry', () => {
     }
   })
 
-  test('advertises a thinking companion for each effort-capable Claude model', () => {
+  test('advertises a thinking companion for each effort-capable Claude and GPT model', () => {
     expect(thinkingIDs.sort()).toEqual(
       [
         'claude-opus-4-5-thinking',
@@ -32,7 +35,10 @@ describe('model registry', () => {
         'claude-opus-5-thinking',
         'claude-sonnet-4-5-thinking',
         'claude-sonnet-4-6-thinking',
-        'claude-sonnet-5-thinking'
+        'claude-sonnet-5-thinking',
+        'gpt-5.6-sol-thinking',
+        'gpt-5.6-terra-thinking',
+        'gpt-5.6-luna-thinking'
       ].sort()
     )
   })
@@ -64,12 +70,16 @@ describe('model registry', () => {
     )
   })
 
-  test('advertises GPT-5.6 metadata without Claude thinking variants', () => {
+  test('advertises GPT-5.6 metadata with a reasoning-style thinking companion', () => {
     expect(registry['gpt-5.6-sol'].limit).toEqual({ context: 272000, output: 64000 })
     expect(registry['gpt-5.6-sol'].name).toContain('2.4x')
     expect(registry['gpt-5.6-terra'].name).toContain('1.0x')
     expect(registry['gpt-5.6-luna'].name).toContain('0.1x')
-    expect(registry['gpt-5.6-sol-thinking']).toBeUndefined()
+    // GPT-5.6 gets a -thinking companion (effort via reasoning.effort), and
+    // being reasoning-style it exposes the full ladder including xhigh.
+    expect(registry['gpt-5.6-sol-thinking']).toBeDefined()
+    expect(registry['gpt-5.6-sol-thinking'].reasoning).toBe(true)
+    expect(Object.keys(registry['gpt-5.6-sol-thinking'].variants)).toContain('xhigh')
   })
 
   test('uses the context limits reported by Kiro CLI', () => {

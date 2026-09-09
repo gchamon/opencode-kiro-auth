@@ -160,6 +160,17 @@ export async function* transformSdkStream(
           if (chunk !== null) yield chunk
         }
       } else if (event.toolUseEvent) {
+        // Native reasoning (GPT-5.6) can arrive immediately before a tool_use
+        // with no assistant text in between. Close the open thinking block here
+        // so it is not left dangling, and route any later content to text.
+        if (sawNativeReasoning && !streamState.thinkingExtracted) {
+          streamState.thinkingExtracted = true
+          for (const ev of stopBlock(streamState.thinkingBlockIndex, streamState)) {
+            const chunk = convertToOpenAI(ev, conversationId, model)
+            if (chunk !== null) yield chunk
+          }
+        }
+
         const tc = event.toolUseEvent
         if (tc.name) totalContent += tc.name
         if (tc.input) totalContent += tc.input
@@ -217,6 +228,17 @@ export async function* transformSdkStream(
           if (_c !== null) yield _c
         }
         streamState.buffer = ''
+      }
+    }
+
+    // Close any thinking block that native reasoning opened but nothing closed.
+    // GPT-5.6 can end a turn on reasoning + tool_use with no trailing assistant
+    // text, leaving thinkingExtracted false and the block still open.
+    if (!streamState.thinkingExtracted) {
+      streamState.thinkingExtracted = true
+      for (const ev of stopBlock(streamState.thinkingBlockIndex, streamState)) {
+        const _c = convertToOpenAI(ev, conversationId, model)
+        if (_c !== null) yield _c
       }
     }
 
